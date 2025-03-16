@@ -2,12 +2,11 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 export default function OAuthCallbackPage() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const { fetchUserProfile } = useAuth();
     const [status, setStatus] = useState('Processing authentication...');
