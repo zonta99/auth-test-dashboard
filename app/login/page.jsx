@@ -1,20 +1,36 @@
 // app/login/page.jsx
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [oauthLoading, setOauthLoading] = useState(false);
 
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        // Check for authentication error from callback
+        const errorParam = searchParams.get('error');
+        if (errorParam) {
+            setError(decodeURIComponent(errorParam));
+        }
+
+        // If already authenticated, redirect to dashboard
+        if (isAuthenticated) {
+            router.push('/dashboard');
+        }
+    }, [isAuthenticated, router, searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,14 +51,40 @@ export default function LoginPage() {
                 setError(result.message);
             }
         } catch (error) {
-            setError('Failed to log in');
+            setError('Failed to log in: ' + (error.message || 'Unknown error'));
         } finally {
             setLoading(false);
         }
     };
 
     const handleOAuthLogin = (provider) => {
-        window.location.href = `http://localhost:8080/oauth2/authorize/${provider}`;
+        try {
+            setOauthLoading(true);
+            setError('');
+
+            // Clear any existing auth tokens before starting a new OAuth flow
+            localStorage.removeItem('authToken');
+
+            // The redirect URI to return to after authentication
+            const redirectUri = encodeURIComponent(`${window.location.origin}/oauth-callback`);
+
+            // Append a timestamp to prevent caching issues
+            const timestamp = new Date().getTime();
+
+            // Setup auth request with properly encoded redirect URI
+            const authUrl = `http://localhost:8080/oauth2/authorize/${provider}?redirect_uri=${redirectUri}&t=${timestamp}`;
+            console.log(`Redirecting to OAuth provider: ${authUrl}`);
+
+            // Use a small timeout to ensure UI updates before redirect
+            setTimeout(() => {
+                // Redirect to the OAuth provider
+                window.location.href = authUrl;
+            }, 100);
+
+        } catch (error) {
+            setError(`Failed to initiate ${provider} login: ${error.message || 'Unknown error'}`);
+            setOauthLoading(false);
+        }
     };
 
     return (
@@ -51,8 +93,9 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold mb-6">Login</h1>
 
                 {error && (
-                    <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md mb-4">
-                        {error}
+                    <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md mb-4 flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                        <div>{error}</div>
                     </div>
                 )}
 
@@ -100,9 +143,9 @@ export default function LoginPage() {
                             <div className="w-full border-t border-border"></div>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                Or continue with
-              </span>
+                            <span className="bg-card px-2 text-muted-foreground">
+                                Or continue with
+                            </span>
                         </div>
                     </div>
 
@@ -111,6 +154,7 @@ export default function LoginPage() {
                             type="button"
                             variant="outline"
                             onClick={() => handleOAuthLogin('google')}
+                            disabled={oauthLoading}
                         >
                             Google
                         </Button>
@@ -119,6 +163,7 @@ export default function LoginPage() {
                             type="button"
                             variant="outline"
                             onClick={() => handleOAuthLogin('github')}
+                            disabled={oauthLoading}
                         >
                             GitHub
                         </Button>
