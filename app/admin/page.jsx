@@ -12,69 +12,9 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle, Trash2, UserCog, Users } from 'lucide-react';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 
-// Mock API service (replace with your actual API calls)
-const adminService = {
-    getAllUsers: async (token) => {
-        try {
-            const response = await fetch('http://localhost:8080/admin/users', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+import {adminService} from "@/lib/api";
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch users');
-            }
 
-            const data = await response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    updateUserRoles: async (token, userId, roles) => {
-        try {
-            const response = await fetch(`http://localhost:8080/admin/users/${userId}/roles`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(roles)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update user roles');
-            }
-
-            const data = await response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-
-    deleteUser: async (token, userId) => {
-        try {
-            const response = await fetch(`http://localhost:8080/admin/users/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete user');
-            }
-
-            const data = await response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-};
 
 // Mock auth context (replace with your actual auth context)
 const useAuth = () => {

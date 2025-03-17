@@ -1,18 +1,18 @@
 // app/profile/page.jsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { authService, userService } from '@/lib/api';
-import { AlertCircle, CheckCircle, Link as LinkIcon, ExternalLink, ChevronRight } from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {useAuth} from '@/lib/auth-context';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import {authService, userService} from '@/lib/api';
+import {AlertCircle, CheckCircle, ChevronRight, Link as LinkIcon} from 'lucide-react';
 
 export default function ProfilePage() {
-    const { currentUser, token, isAuthenticated } = useAuth();
+    const { currentUser, isAuthenticated } = useAuth();
     const router = useRouter();
 
     const [name, setName] = useState('');
@@ -100,10 +100,8 @@ export default function ProfilePage() {
         setLinkingProvider(provider);
         try {
             // Generate the OAuth URL for linking
-            const authUrl = authService.initiateOAuthLink(provider);
-
             // Redirect to the OAuth provider
-            window.location.href = authUrl;
+            window.location.href = authService.initiateOAuthLink(provider);
         } catch (error) {
             setError(`Failed to link ${provider} account: ${error.message}`);
             setLinkingProvider(null);
